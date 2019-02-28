@@ -15,6 +15,7 @@ val trainingData = (spark.loadTable[BbmChannelsPostsSchema]("2019-02-10")
 )
 trainingData.cache()
 trainingData.show
+
 trainingData.groupBy('label).count.show
 
 // Feature extraction
@@ -47,7 +48,6 @@ val lr = (new LogisticRegression()
   .setRegParam(0.3)
   .setFeaturesCol("features")
   .setLabelCol("label")
-  .setElasticNetParam(0.8)
 )
 
 // Fit the model
@@ -71,7 +71,7 @@ predictions.groupBy('label, 'prediction).count.show
 // Get the actaul feature importances from the logistic regression model
 // Get array of coefficients
 val vocabulary = Array("(Intercept)") ++ countVectorizer.vocabulary
-val coefficients = Array(lrModel.intercept) ++ lrModelCoeffs
+val coefficients = Array(lrModel.intercept) ++ lrModel.coefficients.toArray
 
 val df = sc.parallelize(vocabulary zip coefficients).toDF("Word","Coefficients")
 df.orderBy('Coefficients).show(10, false)
